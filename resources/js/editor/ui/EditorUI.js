@@ -2,6 +2,7 @@ import { ADJUSTMENT_CONTROLS, COLOR_GRADE_CONTROLS, DEFAULT_ADJUSTMENTS, DEFAULT
 import { toolLabel } from '../tools/toolConfig.js';
 import { EXPORT_FORMATS } from '../export/exporter.js';
 import { PRESETS, findPreset } from '../presets.js';
+import { deletePreset, getPreset, listPresets, renamePreset, savePreset } from '../project/SessionStore.js';
 import { createCropController } from '../composition/CropController.js';
 import { createTextController } from '../text/TextController.js';
 import { createMaskController } from '../masking/MaskController.js';
@@ -27,7 +28,7 @@ function formatValue(value, control) {
     return String(value);
 }
 
-export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, history, maskRenderer }) {
+export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, history, maskRenderer, project }) {
     const { toolrail, panel, status, fileMeta, fileName, fileDims, empty, app } = refs;
     const rows = new Map();
 
@@ -251,6 +252,133 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
         }
         panel.append(list);
 
+        // Step 13 (§13.6): custom presets — current look saved to this
+        // browser only (adjustments/effects/grade, never pixels). Rendered
+        // outside `.presets` so the nine built-ins keep their own container.
+        const customBox = el('div', 'custom-presets');
+        const customLabel = el('label', 'custom-presets__label', 'Save this look as');
+        customLabel.htmlFor = 'custom-preset-name';
+        const customName = document.createElement('input');
+        customName.type = 'text';
+        customName.id = 'custom-preset-name';
+        customName.className = 'custom-presets__input';
+        customName.maxLength = 40;
+        customName.placeholder = 'My look name';
+        customName.setAttribute('aria-label', 'Custom preset name');
+        const saveLook = el('button', 'btn', 'Save Look');
+        saveLook.type = 'button';
+        saveLook.id = 'btn-save-look';
+        customBox.append(customLabel, customName, saveLook);
+        panel.append(customBox);
+
+        const customList = el('div', 'custom-presets__list');
+        panel.append(customList);
+
+        function currentLook() {
+            const snap = state.get();
+            return {
+                adjustments: { ...snap.adjustments },
+                effects: { ...snap.effects },
+                colorGrade: { ...snap.colorGrade },
+            };
+        }
+
+        function renderCustomPresets() {
+            customList.replaceChildren();
+            for (const saved of listPresets()) {
+                const row = el('div', 'custom-preset');
+                row.dataset.custom = saved.name;
+                const apply = el('button', 'btn preset preset--custom', saved.name);
+                apply.type = 'button';
+                apply.dataset.preset = saved.name;
+                const rename = el('button', 'btn custom-preset__edit', 'Rename');
+                rename.type = 'button';
+                rename.setAttribute('aria-label', `Rename ${saved.name}`);
+                const remove = el('button', 'btn custom-preset__delete', 'Delete');
+                remove.type = 'button';
+                remove.setAttribute('aria-label', `Delete ${saved.name}`);
+
+                rename.addEventListener('click', () => {
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'custom-preset__rename-input';
+                    input.maxLength = 40;
+                    input.value = saved.name;
+                    input.setAttribute('aria-label', `New name for ${saved.name}`);
+                    row.replaceChildren(input);
+                    input.focus();
+                    input.select();
+                    let done = false;
+                    const finish = (commit) => {
+                        if (done) return;
+                        done = true;
+                        if (commit) {
+                            const result = renamePreset(saved.name, input.value.trim());
+                            if (result.ok) {
+                                state.setStatus(`Renamed to “${result.preset.name}”.`, 'info');
+                            } else if (result.reason === 'duplicate') {
+                                state.setStatus('You already have a look with that name.', 'error');
+                            } else if (result.reason === 'name') {
+                                state.setStatus('Look names are 1 to 40 characters.', 'error');
+                            }
+                        }
+                        renderCustomPresets();
+                    };
+                    input.addEventListener('keydown', (event) => {
+                        if (event.key === 'Enter') {
+                            event.preventDefault();
+                            finish(true);
+                        } else if (event.key === 'Escape') {
+                            event.preventDefault();
+                            finish(false);
+                        }
+                    });
+                    input.addEventListener('blur', () => finish(true));
+                });
+
+                remove.addEventListener('click', () => {
+                    const result = deletePreset(saved.name);
+                    if (result.ok) {
+                        renderCustomPresets();
+                        state.setStatus(`“${saved.name}” deleted from this browser.`, 'info');
+                    } else {
+                        state.setStatus('That look could not be deleted.', 'error');
+                    }
+                });
+
+                row.append(apply, rename, remove);
+                customList.append(row);
+            }
+        }
+
+        saveLook.addEventListener('click', () => {
+            const name = customName.value.trim();
+            if (!name || name.length > 40) {
+                state.setStatus('Give your look a name — 1 to 40 characters.', 'error');
+                return;
+            }
+            const builtin = PRESETS.some((p) => p.name.toLowerCase() === name.toLowerCase());
+            if (builtin) {
+                state.setStatus(`“${name}” is a built-in preset — pick another name.`, 'error');
+                return;
+            }
+            const result = savePreset(name, currentLook());
+            if (!result.ok) {
+                const msgs = {
+                    duplicate: `You already have a look called “${name}”.`,
+                    full: '30 custom looks is the maximum — delete one to save another.',
+                    storage: 'This browser refused to store the look — nothing was saved.',
+                };
+                state.setStatus(msgs[result.reason] || 'That look could not be saved.', 'error');
+                return;
+            }
+            customName.value = '';
+            renderCustomPresets();
+            state.setStatus(`“${result.preset.name}” saved to this browser.`, 'info');
+        });
+
+        renderCustomPresets();
+
         // Step 12 (§12.5): full look reset lives with the presets it mirrors —
         // adjustments + effects + grade, exactly what a preset rewrites.
         const lookActions = el('div', 'panel__actions');
@@ -344,6 +472,41 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
         });
 
         exportViews = { dims: dimsValue, status: statusLine, button: go };
+
+        // Step 13 (§13.1–13.2): project = editing instructions only. The
+        // serialized file carries state (sliders, effects, grade, crop, text,
+        // mask) — never the image itself.
+        const projHead = el('div', 'panel__section');
+        projHead.append(
+            el('h2', 'panel__title', 'Project'),
+            el('p', 'panel__hint', 'Your look as a small .8pattern.json file — controls, text and masks only. The image itself is never included.'),
+        );
+        panel.append(projHead);
+
+        const projActions = el('div', 'panel__actions');
+        const saveProject = el('button', 'btn', 'Save Project');
+        saveProject.type = 'button';
+        saveProject.id = 'btn-save-project';
+        saveProject.addEventListener('click', () => project.save());
+        const loadProject = el('button', 'btn', 'Load Project');
+        loadProject.type = 'button';
+        loadProject.id = 'btn-load-project';
+        projActions.append(saveProject, loadProject);
+        panel.append(projActions);
+
+        const projectInput = document.createElement('input');
+        projectInput.type = 'file';
+        projectInput.accept = '.json,application/json';
+        projectInput.id = 'project-input';
+        projectInput.hidden = true;
+        projectInput.setAttribute('aria-label', 'Load a project file');
+        projectInput.addEventListener('change', async () => {
+            const file = projectInput.files && projectInput.files[0];
+            projectInput.value = '';
+            if (file) await project.importFile(file);
+        });
+        panel.append(projectInput);
+        loadProject.addEventListener('click', () => projectInput.click());
     }
 
     function buildPlaceholder(tool) {
@@ -925,7 +1088,8 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
     panel.addEventListener('click', (event) => {
         const button = event.target.closest('[data-preset]');
         if (!button) return;
-        const preset = findPreset(button.dataset.preset);
+        // Step 13: built-ins first, browser-saved custom looks second.
+        const preset = findPreset(button.dataset.preset) || getPreset(button.dataset.preset);
         if (!preset) return;
         gradeCtl.applyPreset(preset);
     });

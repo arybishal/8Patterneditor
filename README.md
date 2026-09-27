@@ -11,16 +11,22 @@
 [![Built with Love in Nepal](https://img.shields.io/badge/Built_with_❤️_in-Nepal-crimson.svg?style=for-the-badge)](#)
 
 <p align="center">
-  <strong>8Pattern Editor</strong> is a studio-grade, browser-based creative photo editor tailored for cinematic color grading, vintage film emulation, analog texture synthesis, brush masking, and typography.
+  <strong>8Pattern Editor</strong> is a professional browser-based creative photo editor tailored for cinematic color grading, 35mm analog film emulation, texture synthesis, selective brush masking, typography, and lossless export.
 </p>
 
 <p align="center">
-  🔒 <strong>100% Client-Side Privacy:</strong> Your photos are processed entirely in your browser using high-performance HTML5 2D Canvas pipelines. No images, masks, or metadata are ever transmitted to any remote server.
+  🔒 <strong>100% Client-Side Privacy:</strong> Your photos are processed entirely in your browser using high-performance HTML5 2D Canvas pipelines. Zero photos, masks, or metadata are ever transmitted to any remote server or cloud.
+</p>
+
+<br>
+
+<p align="center">
+  <img src="docs/images/editor_hero_banner.jpg" alt="8Pattern Editor - Modern Browser-Based Cinematic Photo Studio" width="100%" style="border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
 </p>
 
 ---
 
-[Key Features](#-key-features) • [Graphic Tutorials](#-graphic-tutorials) • [How-To Guides](#-how-to-guides-step-by-step) • [Architecture](#-rendering-pipeline--architecture) • [Keyboard Shortcuts](#-keyboard-shortcuts) • [Installation](#-installation--local-setup)
+[Key Features](#-key-features) • [Graphic Tutorials](#-graphic-tutorials) • [How-To Guides](#-how-to-guides-step-by-step) • [Architecture](#-rendering-pipeline--architecture) • [Keyboard Shortcuts](#-keyboard-shortcuts) • [Installation](#-installation--local-setup) • [SEO & Comparison](#-comparison--why-8pattern-editor)
 
 ---
 
@@ -30,7 +36,7 @@
 
 ## 🌟 Project Overview
 
-**8Pattern Editor** was engineered to bring the tactile nuance and creative control of desktop grading suites into an instant, zero-install web interface. Built with pure vanilla JavaScript components on top of a modern Laravel + Vite foundation, 8Pattern Editor eliminates heavyweight framework overhead to deliver a fluid, 60fps canvas editing experience with complete non-destructive history.
+**8Pattern Editor** was engineered to bring the tactile nuance and creative control of desktop grading suites (such as DaVinci Resolve and Adobe Lightroom) into an instant, zero-install web interface. Built with pure vanilla JavaScript components on top of a modern Laravel + Vite foundation, 8Pattern Editor eliminates heavyweight framework overhead to deliver a fluid, 60fps canvas editing experience with complete non-destructive history.
 
 Whether you're developing high-contrast cinematic stills, emulating expired 35mm film stocks, designing editorial title cards with local WOFF2 typography, or applying selective brush adjustments, 8Pattern Editor gives you full creative agency over every pixel.
 
@@ -96,6 +102,11 @@ Target adjustments and effects with fine-grained local control:
 - **Native Resolution:** Renders against the original uploaded source dimensions (supporting ultra-high resolutions up to 60 Megapixels / 16,384px).
 - **Clean Safe Filenames:** Automatically sanitizes output file names (`photo-edited.jpg`).
 
+### 📁 9. Project Files, Custom Looks & Session Recovery
+- **Portable Project Files (`.8pattern.json`):** Export and import your complete editing recipe as a lightweight JSON file. Share grading formulas, crop settings, text layers, and brush strokes with others without transferring large image files.
+- **Custom Browser Looks:** Save your own favorite grading formulas with a custom name directly in your browser (up to 30 custom presets). Apply, rename, or delete saved looks anytime.
+- **Session Auto-Recovery:** Automatic state preservation protects against accidental tab closures or page reloads with a seamless "Restore previous session" prompt.
+
 ---
 
 ## 🎨 Curated Cinematic Presets
@@ -117,7 +128,16 @@ Target adjustments and effects with fine-grained local control:
 
 ## 📊 Graphic Tutorials
 
-### 1. Workspace Layout Map
+### 1. Cinematic Color Grading: Raw/Flat vs. Graded Film Look
+Below is a demonstration of how 8Pattern Editor transforms a flat, neutral RAW photograph into a rich, atmospheric cinematic still using 3-way color wheels, split toning, and analog grain:
+
+<p align="center">
+  <img src="docs/images/color_grade_preview.jpg" alt="Cinematic Color Grading & Film Look Before and After Showcase" width="100%" style="border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
+</p>
+
+---
+
+### 2. Workspace Layout Map
 ```text
 +-----------------------------------------------------------------------------------------+
 | [8P] 8Pattern Editor   |  IMG_2026.jpg (4032 x 3024)   | [Undo] [Redo] [Open] [Reset] [Panel] |
@@ -145,7 +165,7 @@ Target adjustments and effects with fine-grained local control:
 
 ---
 
-### 2. Image Processing & Rendering Pipeline
+### 3. Image Processing & Rendering Pipeline
 Every render follows a deterministic multi-stage architecture. The composed source feeds through tonal processing, color grading, analog effects, and text compositing:
 
 ```mermaid
@@ -190,7 +210,7 @@ flowchart TD
 
 ---
 
-### 3. Mask Scoping & Targeted Blending Architecture
+### 4. Mask Scoping & Targeted Blending Architecture
 
 ```mermaid
 graph LR
@@ -243,13 +263,18 @@ graph LR
 ---
 
 ### 🖌️ Tutorial 3: Using Selective Brush Masking
+
+<p align="center">
+  <img src="docs/images/brush_mask_feature.jpg" alt="Selective Brush Masking Workflow & UI Tutorial" width="100%" style="border-radius: 8px; box-shadow: 0 8px 30px rgba(0,0,0,0.5);">
+</p>
+
 1. Select the **Mask** tool from the toolrail.
 2. Click **"New Mask"** to initialize a fresh brush layer.
 3. Configure your brush:
    - Set **Size** according to the area you wish to paint.
    - Lower **Hardness** (e.g. `20–40%`) for a smooth feather at the stroke boundaries.
    - Keep **Opacity** at `100%` for full influence.
-4. Paint over the subject on the canvas (e.g. a face or sky). A semi-transparent red overlay indicates your painted mask area.
+4. Paint over the subject on the canvas (e.g. a portrait subject or sky). A semi-transparent red overlay indicates your painted mask area.
 5. In the **"Apply to"** dropdown, select **"Exposure"** or **"Adjustments only"**.
 6. Switch to the **Adjust** tool and change **Exposure** or **Brightness**. Notice how *only* the painted region changes!
 7. To edit the background instead, return to **Mask** and click **"Invert"**.
@@ -290,6 +315,30 @@ graph LR
 
 ---
 
+## ⚡ Comparison: Why 8Pattern Editor?
+
+| Feature | 8Pattern Editor | Adobe Lightroom Web | Canva | Standard Web Editors |
+|:---|:---:|:---:|:---:|:---:|
+| **Zero Server Uploads (Privacy)** | ✅ **100% Client-Side** | ❌ Cloud Upload Required | ❌ Cloud Upload Required | ⚠️ Often Uploads |
+| **3-Way Color Wheels** | ✅ **Yes (Cinema Grade)** | ✅ Yes | ❌ Basic Filters Only | ❌ Rare |
+| **Analog Texture Synthesis** | ✅ **Grain, Dust, Scratches, Leaks** | ⚠️ Grain Only | ❌ Overlays Only | ❌ Rare |
+| **Selective Brush Masking** | ✅ **Included Free** | 💰 Premium Subscription | 💰 Premium Subscription | ❌ Rare |
+| **Local Offline WOFF2 Fonts** | ✅ **21 Bundled Fonts** | ❌ Cloud Synced | ❌ Cloud Synced | ⚠️ System Fonts Only |
+| **No Account / No Paywall** | ✅ **100% Free & Open Source** | ❌ Subscription Required | ❌ Freemium / Watermarked | ⚠️ Ad-Supported |
+| **High-Res Native Export (60MP)** | ✅ **Lossless Full-Res** | ⚠️ Compression Caps | 💰 Paywalled High-Res | ⚠️ Downscaled |
+
+---
+
+## 🔍 SEO & Use Cases
+
+8Pattern Editor is built for creative professionals, developers, and casual photographers:
+- **Photographers & Retouchers:** Quick, color-accurate adjustments and split-toning without launching resource-heavy software.
+- **Cinematographers & Colorists:** Instant film emulation testing (35mm grain, color balance, matte black fade).
+- **Social Media Creators:** Exporting pixel-perfect 4:5 Instagram portraits or 16:9 cinematic YouTube thumbnails with typography.
+- **Privacy-Conscious Users:** Edit private or sensitive documents and personal family photographs knowing no image data ever touches an external server.
+
+---
+
 ## ⌨️ Keyboard Shortcuts
 
 | Shortcut | Action | Description |
@@ -321,6 +370,8 @@ graph LR
 ├── app/                      # Laravel application core
 ├── bootstrap/                # Application bootstrap & providers
 ├── config/                   # Laravel configuration files
+├── docs/                     # Documentation & visual graphic resources
+│   └── images/               # High-resolution screenshots, mockups & tutorials
 ├── public/                   # Public web root
 │   ├── fonts/                # 21 Local WOFF2 font families + manifest.json
 │   ├── favicon.ico           # Application favicon

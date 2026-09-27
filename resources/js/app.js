@@ -9,6 +9,7 @@ import { createExporter } from './editor/export/exporter.js';
 import { createFontManager } from './editor/fonts/FontManager.js';
 import { createHistoryManager } from './editor/history/HistoryManager.js';
 import { createMaskRenderer } from './editor/masking/MaskRenderer.js';
+import { createProjectController } from './editor/project/ProjectController.js';
 
 function byId(id) {
     return document.getElementById(id);
@@ -84,6 +85,12 @@ function boot() {
     // window.__editorState.
     window.__history = history;
 
+    // Step 13: project files, session recovery and debounced autosave —
+    // state only, never the image (§13.1–13.7).
+    const project = createProjectController({ state, history, fonts });
+    window.__project = project;
+    project.attachAutosave();
+
     const ui = createEditorUI({
         state,
         refs,
@@ -91,6 +98,7 @@ function boot() {
         fonts,
         history,
         maskRenderer,
+        project,
         onOpen: upload.openPicker,
         onReset: () => {
             // One labeled entry for the whole reset (§35), no matter how many
@@ -112,11 +120,36 @@ function boot() {
 
     refs.uploadButton.addEventListener('click', upload.openPicker);
 
+    // Step 13 (§13.4): a project imported before an image was open applies
+    // the moment the user supplies one — in the same load notification.
+    let hadImage = Boolean(state.get().originalImage);
     state.subscribe((snapshot) => {
         ui.sync(snapshot);
         zoom.sync(snapshot);
         renderer.requestRender();
+        const hasImage = Boolean(snapshot.originalImage);
+        const becameReady = hasImage && !hadImage;
+        hadImage = hasImage;
+        if (becameReady) project.onImageReady();
     });
+
+    // Step 13 (§13.7): offer recovery only when a session actually exists.
+    const recovery = byId('recovery');
+    if (recovery && project.hasSession()) recovery.hidden = false;
+    const restoreButton = byId('btn-restore-session');
+    const freshButton = byId('btn-start-fresh');
+    if (restoreButton) {
+        restoreButton.addEventListener('click', () => {
+            project.restoreSession();
+            if (recovery) recovery.hidden = true;
+        });
+    }
+    if (freshButton) {
+        freshButton.addEventListener('click', () => {
+            project.startFresh();
+            if (recovery) recovery.hidden = true;
+        });
+    }
 
     renderer.observe();
     ui.sync(state.get());

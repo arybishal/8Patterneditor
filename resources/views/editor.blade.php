@@ -82,6 +82,17 @@
                     <p class="empty__hint">JPG, PNG, WebP</p>
                     <p class="empty__privacy">Your image stays in your browser while you edit.</p>
                 </div>
+
+                <!-- Step 13 (§13.7): recovery offer lives outside the drop zone
+                     so the empty-state geometry stays untouched. Hidden until
+                     a saved session is detected. -->
+                <div class="recovery" id="recovery" hidden>
+                    <p class="recovery__text">Pick up where you left off.</p>
+                    <div class="recovery__actions">
+                        <button type="button" class="btn btn--primary" id="btn-restore-session">Restore previous session</button>
+                        <button type="button" class="btn" id="btn-start-fresh">Start fresh</button>
+                    </div>
+                </div>
             </div>
 
             <div class="busy" id="busy" hidden role="status" aria-live="polite">
