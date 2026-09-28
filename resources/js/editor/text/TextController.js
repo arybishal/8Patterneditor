@@ -344,10 +344,16 @@ export function createTextController({ state, workspace, panel, fonts }) {
             if (!snapshot().originalImage) return;
             const now = Date.now();
             if (now - lastAdd < 250) return; // debounce double-clicks (§4)
-            lastAdd = now;
-            state.addText();
-            state.setStatus('Text layer added — edit it below or drag it on the image.');
-        });
+                lastAdd = now;
+                state.addText();
+                state.setStatus('Text layer added — edit it below or drag it on the image.');
+                // Task 04 (§21): the next step is typing — put the caret in the
+                // new layer's content field with the default text selected.
+                if (views.content) {
+                    views.content.focus();
+                    views.content.select();
+                }
+            });
         addRow.append(views.add);
         panel.append(addRow);
 

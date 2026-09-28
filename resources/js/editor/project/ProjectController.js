@@ -12,6 +12,9 @@ const AUTOSAVE_MS = 800;
 
 export function createProjectController({ state, history, fonts }) {
     let pending = null;
+    // Task 04 (§27): one module-scope autosave timer so startFresh() can
+    // cancel a scheduled write and pagehide can flush it.
+    let autosaveTimer = null;
 
     function applyState(next, msg, label = 'Import Project') {
         history.begin(label); // one txn — undo = pre-import session
@@ -36,7 +39,7 @@ export function createProjectController({ state, history, fonts }) {
         link.click();
         link.remove();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
-        state.setStatus('Project saved — editing instructions only, no image.', 'info');
+        state.setStatus('Project saved — editing instructions only, no image.', 'success');
         return true;
     }
 
@@ -101,17 +104,28 @@ export function createProjectController({ state, history, fonts }) {
     function startFresh() {
         clearSession();
         state.setStatus('Started fresh — previous session cleared.', 'info');
+        // The status update above re-enters the autosave subscriber and
+        // schedules a fresh write — cancel it too, or the cleared session
+        // resurrects 800ms later (a pending pre-fresh write dies here as well).
+        clearTimeout(autosaveTimer);
+        autosaveTimer = null;
         return true;
     }
 
     // --- autosave (13.7): debounced, state only, never the image --------------
 
     function attachAutosave() {
-        let timer = null;
         state.subscribe((snap) => {
             if (!snap.originalImage) return;
-            clearTimeout(timer);
-            timer = setTimeout(() => saveSession(historyState(snap)), AUTOSAVE_MS);
+            clearTimeout(autosaveTimer);
+            autosaveTimer = setTimeout(() => saveSession(historyState(snap)), AUTOSAVE_MS);
+        });
+        // Task 04 (§27): reload/close right after an edit still recovers.
+        window.addEventListener('pagehide', () => {
+            if (!autosaveTimer) return;
+            clearTimeout(autosaveTimer);
+            autosaveTimer = null;
+            saveSession(historyState(state.get()));
         });
     }
 

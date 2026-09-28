@@ -1,23 +1,8 @@
-/* 8Pattern Editor — editor shell */
-
-:root {
-    --bg-app: #0b0b0d;
-    --bg-panel: #101013;
-    --bg-raised: #17171b;
-    --bg-hover: #1d1d22;
-    --bg-workspace: #08080a;
-    --line: #212127;
-    --line-strong: #2c2c34;
-    --text: #e9e9ec;
-    --text-dim: #9b9ba5;
-    --text-faint: #6b6b75;
-    --accent: #d9b06c;
-    --accent-soft: rgba(217, 176, 108, 0.16);
-    --danger: #e06a55;
-    --radius: 6px;
-    --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-}
+/* 8Pattern Editor — editor shell.
+   V1.0.1 token layer lives in tokens.css (its own Vite entry — this file
+   must not pull in stylesheets directly, enforced by step9 privacy checks);
+   colors and spacing come from it, legacy names (--bg-*, --accent, …)
+   are aliased there. */
 
 html,
 body {
@@ -49,9 +34,9 @@ body {
     display: flex;
     align-items: center;
     gap: 16px;
-    height: 48px;
+    height: 52px;
     flex: 0 0 auto;
-    padding: 0 12px;
+    padding: 0 14px;
     background: var(--bg-panel);
     border-bottom: 1px solid var(--line);
 }
@@ -59,23 +44,25 @@ body {
 .brand {
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 10px;
     min-width: 0;
 }
 
 .brand__mark {
-    width: 14px;
-    height: 14px;
+    width: 20px;
+    height: 20px;
     flex: 0 0 auto;
-    border: 1.5px solid var(--accent);
-    border-radius: 3px;
-    box-shadow: inset 0 0 0 2px var(--bg-panel), inset 0 0 0 3.5px var(--accent-soft);
+    color: var(--accent);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 3;
+    stroke-linecap: round;
 }
 
 .brand__name {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.02em;
+    font-size: 14px;
+    font-weight: 650;
+    letter-spacing: 0.01em;
     white-space: nowrap;
 }
 
@@ -109,8 +96,22 @@ body {
 .topbar__actions {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     margin-left: auto;
+}
+
+.topbar__grp {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.topbar__sep {
+    width: 1px;
+    height: 20px;
+    flex: 0 0 auto;
+    margin: 0 6px;
+    background: var(--line);
 }
 
 .topbar__hist {
@@ -125,35 +126,68 @@ body {
     cursor: default;
 }
 
-/* ---------- Buttons ---------- */
+/* Header command row: compact, uniform targets. */
+.topbar .btn {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: var(--radius-md);
+    font-size: 12.5px;
+}
+
+.topbar .btn--primary {
+    height: 32px;
+    padding: 0 16px;
+    font-size: 12.5px;
+    border-radius: var(--radius-md);
+}
+
+/* Header Export only fits at mid widths and up; below that the rail
+   Export tool stays the one entry point (acts are filtered by offsetParent). */
+.topbar__export {
+    display: none;
+}
+
+/* ---------- Buttons (one system: primary / secondary / ghost / danger / icon) ---------- */
 
 .btn {
     height: 30px;
     padding: 0 12px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font: inherit;
     font-size: 12px;
     letter-spacing: 0.01em;
     cursor: pointer;
-    transition: background-color 0.12s ease, border-color 0.12s ease;
+    transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
 }
 
 .btn:hover {
     background: var(--bg-hover);
-    border-color: #3a3a44;
+    border-color: var(--line-hover);
 }
 
 .btn:active {
     transform: translateY(0.5px);
 }
 
+.btn--ghost {
+    background: transparent;
+    border-color: transparent;
+    color: var(--text-dim);
+}
+
+.btn--ghost:hover {
+    background: var(--bg-raised);
+    border-color: var(--line);
+    color: var(--text);
+}
+
 .btn--primary {
     background: var(--accent);
     border-color: var(--accent);
-    color: #17130a;
+    color: var(--color-on-accent);
     font-weight: 600;
     padding: 0 18px;
     height: 34px;
@@ -161,8 +195,21 @@ body {
 }
 
 .btn--primary:hover {
-    background: #e6bd7b;
-    border-color: #e6bd7b;
+    background: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+}
+
+/* Destructive: calm at rest, unmistakable on hover — never neon. */
+.btn--danger {
+    color: var(--danger);
+    border-color: var(--line-strong);
+    background: transparent;
+}
+
+.btn--danger:hover {
+    background: var(--bg-raised);
+    border-color: var(--danger);
+    color: var(--danger);
 }
 
 .btn:focus-visible,
@@ -194,33 +241,41 @@ textarea:focus-visible {
 .toolrail {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 3px;
     flex: 0 0 auto;
-    width: 70px;
-    padding: 8px 6px;
+    width: 84px;
+    padding: 10px 8px;
     background: var(--bg-panel);
     border-right: 1px solid var(--line);
     overflow-y: auto;
+}
+
+.toolrail__sep {
+    height: 1px;
+    flex: 0 0 auto;
+    margin: 7px 4px;
+    background: var(--line);
 }
 
 .tool {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 6px;
     width: 100%;
-    padding: 9px 2px 8px;
+    padding: 10px 4px 9px;
     border: 0;
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: none;
     color: var(--text-dim);
     font: inherit;
     cursor: pointer;
+    transition: background-color 0.12s ease, color 0.12s ease;
 }
 
 .tool svg {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     fill: none;
     stroke: currentColor;
     stroke-width: 1.5;
@@ -229,10 +284,11 @@ textarea:focus-visible {
 }
 
 .tool__label {
-    font-size: 9.5px;
+    font-size: 10px;
+    font-weight: 500;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: var(--text-faint);
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
 }
 
 .tool:hover {
@@ -241,17 +297,30 @@ textarea:focus-visible {
 }
 
 .tool:hover .tool__label {
-    color: var(--text-dim);
+    color: var(--text);
 }
 
+/* Active tool: accent bar + wash + icon color + bold label — never color alone. */
 .tool.is-active {
-    background: var(--bg-raised);
+    background: var(--color-accent-subtle);
     color: var(--accent);
     box-shadow: inset 2px 0 0 var(--accent);
 }
 
 .tool.is-active .tool__label {
     color: var(--accent);
+    font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .btn,
+    .tool,
+    .topbar .btn,
+    .adjust__reset,
+    .history__entry,
+    input[type="range"].adjust__range::-webkit-slider-thumb {
+        transition: none;
+    }
 }
 
 /* ---------- Workspace ---------- */
@@ -308,7 +377,7 @@ textarea:focus-visible {
 
 .workspace.is-dragover .empty__drop {
     border-color: var(--accent);
-    background: rgba(217, 176, 108, 0.04);
+    background: var(--color-accent-wash);
 }
 
 /* Step 13 (§13.7): session recovery offer — outside the drop zone so the
@@ -423,7 +492,7 @@ textarea:focus-visible {
     vertical-align: 1px;
 }
 
-/* ---------- Right panel ---------- */
+/* ---------- Right panel (inspector) ---------- */
 
 .panel {
     flex: 0 0 auto;
@@ -432,24 +501,93 @@ textarea:focus-visible {
     border-left: 1px solid var(--line);
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+}
+
+.panel::-webkit-scrollbar {
+    width: 9px;
+}
+
+.panel::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.panel::-webkit-scrollbar-thumb {
+    background: var(--line-strong);
+    border-radius: 999px;
+    border: 2px solid var(--bg-panel);
+}
+
+/* Task 04 (§9): subtle entrance on a real tool switch (sync adds the class
+   only when the tool changes — mask rebuilds and edits never re-trigger it). */
+@keyframes panelEnter {
+    from {
+        opacity: 0.45;
+        transform: translateX(6px);
+    }
+}
+
+.panel--enter {
+    animation: panelEnter 140ms ease-out;
+}
+
+/* Same specificity as the rule above — must come after it to win. */
+@media (prefers-reduced-motion: reduce) {
+    .panel--enter {
+        animation: none;
+    }
 }
 
 .panel__section {
-    padding: 16px 18px 6px;
+    padding: 14px 16px 4px;
 }
 
+/* Lead section = the panel header treatment: tool-facing title + helper,
+   heavier than the small uppercase section labels that follow. */
+.panel__section--lead {
+    padding-top: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--line);
+}
+
+.panel__section--lead .panel__title {
+    font-size: 14px;
+    font-weight: 650;
+    text-transform: none;
+    letter-spacing: 0.01em;
+    color: var(--text);
+}
+
+.panel__section--lead .panel__hint {
+    margin-top: 3px;
+    color: var(--text-dim);
+}
+
+/* Section labels: compact, uppercase, hairline running to the edge. */
 .panel__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     margin: 0;
-    font-size: 11px;
-    font-weight: 600;
+    font-size: 10.5px;
+    font-weight: 650;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.09em;
     color: var(--text-faint);
+}
+
+.panel__section:not(.panel__section--lead) .panel__title::after {
+    content: "";
+    flex: 1 1 auto;
+    height: 1px;
+    background: var(--line);
 }
 
 .panel__hint {
     margin: 4px 0 0;
     font-size: 11.5px;
+    line-height: 1.5;
     color: var(--text-faint);
 }
 
@@ -465,11 +603,13 @@ textarea:focus-visible {
 
 .history__list {
     margin: 0;
-    padding: 6px 10px 12px;
+    padding: 6px 8px 10px;
     list-style: none;
-    max-height: 172px;
+    max-height: 150px;
     overflow-y: auto;
     overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
 }
 
 .history__entry {
@@ -478,7 +618,7 @@ textarea:focus-visible {
     width: 100%;
     padding: 5px 8px;
     border: 0;
-    border-radius: var(--radius);
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--text-dim);
     font: inherit;
@@ -500,7 +640,7 @@ textarea:focus-visible {
 
 .history__entry.is-current {
     color: var(--text);
-    background: var(--bg-raised);
+    background: var(--color-accent-subtle);
     box-shadow: inset 2px 0 0 var(--accent);
 }
 
@@ -518,11 +658,11 @@ textarea:focus-visible {
     flex-direction: column;
     align-items: center;
     gap: 6px;
-    margin: 28px 18px;
-    padding: 26px 18px;
+    margin: 24px 16px;
+    padding: 24px 16px;
     text-align: center;
     border: 1px dashed var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     color: var(--text-dim);
 }
 
@@ -538,31 +678,41 @@ textarea:focus-visible {
     color: var(--text-faint);
 }
 
-/* ---------- Adjustment sliders ---------- */
+/* ---------- Adjustment sliders (shared: adjustments, effects, grade) ---------- */
 
 .adjust {
-    padding: 11px 18px;
+    padding: 8px 16px 9px;
+}
+
+/* Tiny group captions inside a section (Light / Color / Detail). */
+.adjust__group {
+    padding: 10px 16px 2px;
+    font-size: 10px;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
 }
 
 .adjust__head {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: 7px;
+    gap: 10px;
+    margin-bottom: 5px;
 }
 
 .adjust__label {
     flex: 1 1 auto;
     min-width: 0;
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    text-transform: none;
     color: var(--text-dim);
     cursor: default;
 }
 
 .adjust__value {
-    min-width: 34px;
+    min-width: 42px;
     font-family: var(--mono);
     font-size: 11.5px;
     font-variant-numeric: tabular-nums;
@@ -575,14 +725,14 @@ textarea:focus-visible {
     height: 18px;
     padding: 0;
     border: 0;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     background: none;
     color: var(--text-faint);
     font-size: 13px;
     line-height: 1;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity 0.1s ease, background-color 0.1s ease;
+    opacity: 0.45;
+    transition: opacity 0.1s ease, background-color 0.1s ease, color 0.1s ease;
 }
 
 .adjust.is-dirty .adjust__reset,
@@ -601,7 +751,7 @@ input[type="range"].adjust__range {
     appearance: none;
     display: block;
     width: 100%;
-    height: 16px;
+    height: 18px;
     margin: 0;
     background: transparent;
     cursor: pointer;
@@ -610,7 +760,7 @@ input[type="range"].adjust__range {
 }
 
 input[type="range"].adjust__range::-webkit-slider-runnable-track {
-    height: 3px;
+    height: 4px;
     border-radius: 2px;
     background: linear-gradient(
         to right,
@@ -623,12 +773,13 @@ input[type="range"].adjust__range::-webkit-slider-runnable-track {
 input[type="range"].adjust__range::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 12px;
-    height: 12px;
-    margin-top: -4.5px;
+    width: 14px;
+    height: 14px;
+    margin-top: -5px;
     border: 0;
     border-radius: 50%;
-    background: #dcdce2;
+    background: var(--color-text);
+    box-shadow: 0 0 0 2px var(--bg-panel);
     transition: background-color 0.1s ease;
 }
 
@@ -638,7 +789,7 @@ input[type="range"].adjust__range:active::-webkit-slider-thumb {
 }
 
 input[type="range"].adjust__range::-moz-range-track {
-    height: 3px;
+    height: 4px;
     border-radius: 2px;
     background: linear-gradient(
         to right,
@@ -649,24 +800,40 @@ input[type="range"].adjust__range::-moz-range-track {
 }
 
 input[type="range"].adjust__range::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border: 0;
     border-radius: 50%;
-    background: #dcdce2;
+    background: var(--color-text);
+    box-shadow: 0 0 0 2px var(--bg-panel);
 }
 
 input[type="range"].adjust__range:hover::-moz-range-thumb {
     background: var(--accent);
 }
 
-/* ---------- Export panel ---------- */
+input[type="range"].adjust__range:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
+input[type="range"].adjust__range:disabled::-webkit-slider-thumb {
+    background: var(--text-faint);
+    box-shadow: none;
+}
+
+input[type="range"].adjust__range:disabled::-moz-range-thumb {
+    background: var(--text-faint);
+    box-shadow: none;
+}
+
+/* ---------- Form rows & selects (export, mask, text, resize) ---------- */
 
 .export {
     display: flex;
     flex-direction: column;
-    gap: 16px;
-    padding: 14px 18px 18px;
+    gap: 14px;
+    padding: 12px 16px 16px;
 }
 
 .export__row {
@@ -677,30 +844,36 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 }
 
 .export__label {
-    font-size: 11px;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    text-transform: none;
     color: var(--text-dim);
 }
 
 .export__select {
-    height: 28px;
-    padding: 0 8px;
+    height: 30px;
+    padding: 0 10px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font: inherit;
-    font-size: 12px;
+    font-size: 12.5px;
     cursor: pointer;
+    transition: border-color 0.12s ease;
 }
 
 .export__select:hover {
-    border-color: #3a3a44;
+    border-color: var(--line-hover);
+}
+
+.export__select:disabled {
+    opacity: 0.55;
+    cursor: default;
 }
 
 .export__quality .adjust__head {
-    margin-bottom: 7px;
+    margin-bottom: 5px;
 }
 
 .export__dims {
@@ -725,29 +898,52 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     color: var(--danger);
 }
 
+/* Task 04 (§35): errors are never color-only — the glyph rides along. */
+.export__status.is-error::before {
+    content: '⚠ ';
+}
+
+.export__status.is-success {
+    color: var(--color-success);
+}
+
 .btn[disabled] {
     opacity: 0.55;
     cursor: default;
     pointer-events: none;
 }
 
-/* ---------- Presets ---------- */
+/* ---------- Presets (2-up grid: scan fast, pick fast) ---------- */
 
 .presets {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 6px;
-    padding: 10px 18px 18px;
+    padding: 10px 16px 14px;
 }
 
 .preset {
     width: 100%;
+    height: 30px;
+    padding: 0 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     text-align: left;
+    font-size: 11.5px;
     color: var(--text-dim);
 }
 
 .preset:hover {
     color: var(--text);
+}
+
+/* Applied look: wash + accent edge + weight — never color alone. */
+.preset.is-active {
+    background: var(--color-accent-subtle);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 650;
 }
 
 /* ---------- Step 13: custom presets (browser-local, state only) ---------- */
@@ -756,33 +952,38 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 14px 18px 6px;
+    padding: 12px 16px 6px;
     border-top: 1px solid var(--line);
 }
 
 .custom-presets__label {
-    font-size: 11px;
-    letter-spacing: 0.05em;
+    font-size: 10px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--text-dim);
+    color: var(--text-faint);
 }
 
 .custom-presets__input {
-    height: 28px;
-    padding: 0 8px;
+    height: 30px;
+    padding: 0 10px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font: inherit;
-    font-size: 12px;
+    font-size: 12.5px;
+}
+
+.custom-presets__input:hover {
+    border-color: var(--line-hover);
 }
 
 .custom-presets__list {
     display: flex;
     flex-direction: column;
     gap: 6px;
-    padding: 0 18px 18px;
+    padding: 0 16px 16px;
 }
 
 .custom-presets__list:empty {
@@ -798,6 +999,8 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 .custom-preset .preset {
     flex: 1;
     min-width: 0;
+    text-align: left;
+    padding-left: 10px;
 }
 
 .custom-preset__edit,
@@ -813,7 +1016,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     height: auto;
     padding: 7px 9px;
     border: 1px solid var(--accent);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font: inherit;
@@ -845,6 +1048,16 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 
 .statusbar__status.is-error {
     color: var(--danger);
+}
+
+/* Task 04 (§35): the glyph is generated content — textContent (what tests
+   and screen readers read from the node) is untouched. */
+.statusbar__status.is-error::before {
+    content: '⚠ ';
+}
+
+.statusbar__status.is-success {
+    color: var(--color-success);
 }
 
 .zoom {
@@ -889,13 +1102,19 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 
 /* ---------- Responsive ---------- */
 
+@media (min-width: 641px) {
+    .topbar__export {
+        display: inline-block;
+    }
+}
+
 @media (max-width: 1100px) {
     .panel {
         width: 258px;
     }
 
     .toolrail {
-        width: 62px;
+        width: 70px;
     }
 }
 
@@ -940,9 +1159,22 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
         gap: 0;
     }
 
+    .topbar {
+        gap: 10px;
+        padding: 0 10px;
+    }
+
+    .topbar__sep {
+        display: none;
+    }
+
     .toolrail {
         width: 54px;
         padding: 6px 4px;
+    }
+
+    .toolrail__sep {
+        margin: 5px 4px;
     }
 
     .tool__label {
@@ -960,7 +1192,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 10px 18px;
+    padding: 10px 16px;
     align-items: center;
 }
 
@@ -968,6 +1200,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     margin-left: auto;
     font-family: var(--mono);
     font-size: 12px;
+    font-variant-numeric: tabular-nums;
     color: var(--text-dim);
 }
 
@@ -976,41 +1209,57 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     flex-wrap: wrap;
     gap: 6px;
     align-items: center;
-    padding: 6px 18px;
+    padding: 6px 16px;
 }
 
 .crop-aspect__label {
-    font-size: 12px;
-    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--text-faint);
     margin-right: 4px;
 }
 
 .crop-aspect__btn {
-    padding: 5px 10px;
-    font-size: 12px;
+    height: 26px;
+    padding: 0 10px;
+    font-size: 11.5px;
+    border-radius: var(--radius-md);
 }
 
 .crop-aspect__btn.is-active {
-    background: var(--accent-soft);
+    background: var(--color-accent-subtle);
     border-color: var(--accent);
     color: var(--accent);
+    font-weight: 650;
 }
 
 .resize-input {
     width: 96px;
     text-align: right;
+    font-family: var(--mono);
+    font-variant-numeric: tabular-nums;
+    font-size: 12px;
 }
 
 .resize-aspect {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 4px 0;
+    padding: 4px 16px;
 }
 
 .resize-aspect__label {
     font-size: 12.5px;
     color: var(--text-dim);
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 15px;
+    height: 15px;
     cursor: pointer;
 }
 
@@ -1040,7 +1289,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     width: 14px;
     height: 14px;
     background: var(--accent);
-    border: 2px solid #0b0b0d;
+    border: 2px solid var(--bg-app);
     border-radius: 3px;
 }
 
@@ -1055,23 +1304,27 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
    inside the .export box keep that box's own padding. */
 .panel > .export__row,
 .text-selected > .export__row {
-    padding: 5px 18px;
+    padding: 5px 16px;
 }
 
 .text-content {
     display: block;
-    width: calc(100% - 36px);
-    margin: 10px 18px 4px;
+    width: calc(100% - 32px);
+    margin: 10px 16px 4px;
     padding: 8px 10px;
     min-height: 56px;
     resize: vertical;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font: inherit;
     font-size: 12.5px;
     line-height: 1.45;
+}
+
+.text-content:hover {
+    border-color: var(--line-hover);
 }
 
 .text-content:focus {
@@ -1085,24 +1338,28 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 
 .text-color {
     width: 44px;
-    height: 28px;
+    height: 30px;
     padding: 2px 4px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     cursor: pointer;
 }
 
 .text-hex {
     width: 92px;
-    height: 28px;
+    height: 30px;
     padding: 0 8px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font-family: var(--mono);
     font-size: 12px;
+}
+
+.text-hex:hover {
+    border-color: var(--line-hover);
 }
 
 .text-hex:focus {
@@ -1116,7 +1373,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 }
 
 .text-selected .crop-aspect {
-    padding: 6px 18px;
+    padding: 6px 16px;
 }
 
 /* Selection overlay — workspace-only chrome, never exported (§16). */
@@ -1150,10 +1407,10 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     justify-content: space-between;
     gap: 8px;
     width: 100%;
-    height: 28px;
-    padding: 0 8px;
+    height: 30px;
+    padding: 0 10px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font: inherit;
@@ -1191,7 +1448,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     width: 250px;
     padding: 8px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-panel);
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5);
 }
@@ -1200,11 +1457,11 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     display: block;
     box-sizing: border-box;
     width: 100%;
-    height: 28px;
-    padding: 0 8px;
+    height: 30px;
+    padding: 0 10px;
     margin-bottom: 6px;
     border: 1px solid var(--line-strong);
-    border-radius: var(--radius);
+    border-radius: var(--radius-md);
     background: var(--bg-raised);
     color: var(--text);
     font: inherit;
@@ -1238,7 +1495,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     justify-content: space-between;
     gap: 10px;
     padding: 5px 8px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 12px;
     color: var(--text);
     cursor: pointer;
@@ -1279,7 +1536,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 
 .font-hint {
     min-height: 15px;
-    padding: 0 18px 3px;
+    padding: 0 16px 3px;
     font-size: 11px;
     color: var(--text-faint);
 }
@@ -1289,7 +1546,7 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
 }
 
 .font-hint[data-state='failure'] {
-    color: var(--accent);
+    color: var(--danger);
 }
 
 /* --- Branding footer — page chrome, sits below the status bar, outside the
@@ -1370,17 +1627,30 @@ input[type="range"].adjust__range:hover::-moz-range-thumb {
     pointer-events: none;
 }
 
+/* Brush / Erase read as a segmented pair; filled accent = active mode. */
+.mask-mode {
+    gap: 6px;
+}
+
+.mask-mode__btn {
+    padding: 0 14px;
+    font-size: 12px;
+    color: var(--text-dim);
+}
+
 .mask-mode__btn.is-active {
-    background: var(--accent-soft);
+    background: var(--accent);
     border-color: var(--accent);
-    color: var(--accent);
+    color: var(--color-on-accent);
+    font-weight: 650;
 }
 
 .mask-range {
-    padding: 4px 18px 2px;
+    padding: 4px 16px 2px;
 }
 
 .mask-empty {
-    padding: 4px 18px 12px;
+    padding: 4px 16px 12px;
+    font-size: 11.5px;
     color: var(--text-faint);
 }

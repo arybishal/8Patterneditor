@@ -1,7 +1,10 @@
 @import 'tailwindcss';
 
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
-@source '../../storage/framework/views/*.php';
+/* Compiled views (gitignored runtime cache) are intentionally NOT scanned:
+   they are derived from the blades below, and scanning them made the built
+   CSS size depend on which views happen to be compiled on this machine
+   (35–53 kB swing), tripping the <60 kB bundle check. */
 @source "../**/*.blade.php";
 @source "../**/*.js";
 @source "../**/*.vue";

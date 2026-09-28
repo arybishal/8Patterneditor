@@ -1,0 +1,90 @@
+/* 8Pattern Editor — V1.0.1 design tokens (Task 01: Neo Yellow system)
+ *
+ * One controlled token layer for the whole UI. Semantic roles first,
+ * legacy V1.0 variable names aliased afterwards so every existing
+ * var(--bg-*) / var(--accent) / … reference picks up the new system
+ * without rewriting component rules.
+ *
+ * Neo Yellow is an ACCENT/interaction language only (primary actions,
+ * active tools, selection, focus, key indicators) — never a theme fill.
+ * Colors must not appear in pixels history/project/autosave — this file
+ * is presentation-only. */
+
+:root {
+    /* ---------- Surfaces: deep near-black scale (no pure black) ---------- */
+    --color-bg: #0b0b0d;              /* application background        */
+    --color-surface: #101013;         /* panels                        */
+    --color-surface-raised: #17171b;  /* raised panels, controls       */
+    --color-surface-hover: #1d1d22;   /* hover fill                    */
+    --color-workspace: #08080a;       /* canvas area (feels separate)  */
+
+    /* ---------- Borders: subtle lines over shadows ---------- */
+    --color-border: #212127;
+    --color-border-strong: #2c2c34;
+    --color-border-hover: #3a3a44;     /* control hover edge (Task 03)          */
+
+    /* ---------- Text hierarchy ---------- */
+    --color-text: #e9e9ec;        /* primary   */
+    --color-text-muted: #9b9ba5;  /* secondary */
+    --color-text-subtle: #6b6b75; /* helper/status */
+
+    /* ---------- Neo Yellow accent family (ONE family, no random yellows) ---------- */
+    --color-accent: #e8ff00;                 /* primary interactive accent        */
+    --color-accent-hover: #f1ff4d;           /* brighter hover state              */
+    --color-accent-active: #d5eb00;          /* pressed/selected state            */
+    --color-accent-subtle: rgba(232, 255, 0, 0.16);  /* low-opacity highlight     */
+    --color-accent-wash: rgba(232, 255, 0, 0.05);    /* near-invisible tint        */
+    --color-accent-text: #e8ff00;            /* accent text — only on dark bg     */
+    --color-on-accent: #17130a;              /* content ON yellow fills (contrast) */
+    --color-focus: var(--color-accent);      /* keyboard focus uses the accent    */
+
+    /* ---------- Status (never the sole signal — pair with text/icon) ---------- */
+    --color-danger: #ff4d5a;
+    --color-success: #4ade80;
+    --color-warning: #facc15;
+
+    /* ---------- Radius ---------- */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+
+    /* ---------- Spacing scale ---------- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+
+    /* ---------- Control sizing (applied gradually in later V1.0.1 tasks) ---------- */
+    --control-height: 34px;   /* matches the existing .btn height */
+
+    /* ---------- Typography (existing system, no new font dependency) ---------- */
+    --font-ui: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --text-xs: 11px;
+    --text-sm: 12px;
+    --text-md: 13px;          /* base UI size (body) */
+    --text-lg: 15px;
+    --text-title: 18px;
+
+    /* ---------- Legacy V1.0 aliases (compat — keep old names working) ---------- */
+    --bg-app: var(--color-bg);
+    --bg-panel: var(--color-surface);
+    --bg-raised: var(--color-surface-raised);
+    --bg-hover: var(--color-surface-hover);
+    --bg-workspace: var(--color-workspace);
+    --line: var(--color-border);
+    --line-strong: var(--color-border-strong);
+    --line-hover: var(--color-border-hover);
+    --text: var(--color-text);
+    --text-dim: var(--color-text-muted);
+    --text-faint: var(--color-text-subtle);
+    --accent: var(--color-accent);
+    --accent-soft: var(--color-accent-subtle);
+    --danger: var(--color-danger);
+    --radius: var(--radius-sm);
+    --font: var(--font-ui);
+    --mono: var(--font-mono);
+}

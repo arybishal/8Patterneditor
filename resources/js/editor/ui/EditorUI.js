@@ -36,6 +36,10 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
     let exportFormat = 'jpg';
     let exportQuality = 90;
     let exportViews = null;
+    // Task 04 (§19/§42): export button focus across the disabled window, and
+    // the panel's scroll position across tool switches.
+    let lastExporting = false;
+    const panelScroll = new Map();
 
     // Crop overlay lives in the workspace (not the panel) and survives panel
     // rebuilds; only its tool activation changes.
@@ -66,6 +70,15 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
     historyHead.append(el('h2', 'panel__title', 'History'));
     const historyList = el('ol', 'history__list');
     historySection.append(historyHead, historyList);
+
+    // Task 03: which look is currently applied — visual + aria state only.
+    // Cleared the moment any control is edited (the look no longer matches).
+    function clearActivePresets() {
+        for (const b of panel.querySelectorAll('.preset.is-active')) {
+            b.classList.remove('is-active');
+            b.removeAttribute('aria-current');
+        }
+    }
 
     function renderHistory() {
         const canUndo = history.canUndo();
@@ -142,8 +155,14 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
         input.max = String(control.max);
         input.step = String(control.step);
 
-        input.addEventListener('input', () => onChange(Number(input.value)));
-        reset.addEventListener('click', () => onChange(defaultValue(control.key)));
+        input.addEventListener('input', () => {
+            clearActivePresets();
+            onChange(Number(input.value));
+        });
+        reset.addEventListener('click', () => {
+            clearActivePresets();
+            onChange(defaultValue(control.key));
+        });
 
         row.append(headRow, input);
         rows.set(control.key, { row, input, output, control });
@@ -158,9 +177,17 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
         );
         panel.append(head);
 
-        for (const control of ADJUSTMENT_CONTROLS) {
+        // Task 03: captions group the nine basics (Light / Color / Detail).
+        const basicGroups = [
+            { label: 'Light', from: 0 },
+            { label: 'Color', from: 5 },
+            { label: 'Detail', from: 8 },
+        ];
+        ADJUSTMENT_CONTROLS.forEach((control, index) => {
+            const caption = basicGroups.find((g) => g.from === index);
+            if (caption) panel.append(el('div', 'adjust__group', caption.label));
             panel.append(buildControlRow(control, (v) => state.setAdjustment(control.key, v)));
-        }
+        });
 
         // Step 12 (§12.2): the grade reuses the same rows in three groups —
         // Color / Global / Cinematic. No new markup system, no second sync.
@@ -193,7 +220,6 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
                 panel.append(buildControlRow(byKey.get(key), (v) => state.setColorGrade(key, v)));
             }
         }
-
         const gradeActions = el('div', 'panel__actions');
         const resetGrade = el('button', 'btn', 'Reset Color Grade');
         resetGrade.type = 'button';
@@ -283,6 +309,16 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
             };
         }
 
+        // Task 04 (§20): re-rendering the list detaches the focused row — send
+        // focus back into the section instead of dropping it on <body>.
+        // Only when nothing else claimed focus (Enter/Escape/Delete end on body;
+        // a blur to another control must not be hijacked).
+        function refocusCustomPresets() {
+            if (document.activeElement !== document.body) return;
+            const next = customList.querySelector('.custom-preset__delete');
+            (next || customName).focus();
+        }
+
         function renderCustomPresets() {
             customList.replaceChildren();
             for (const saved of listPresets()) {
@@ -323,6 +359,7 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
                             }
                         }
                         renderCustomPresets();
+                        refocusCustomPresets();
                     };
                     input.addEventListener('keydown', (event) => {
                         if (event.key === 'Enter') {
@@ -340,6 +377,7 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
                     const result = deletePreset(saved.name);
                     if (result.ok) {
                         renderCustomPresets();
+                        refocusCustomPresets();
                         state.setStatus(`“${saved.name}” deleted from this browser.`, 'info');
                     } else {
                         state.setStatus('That look could not be deleted.', 'error');
@@ -937,7 +975,7 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
             state.setStatus('Mask cleared — paint a new region.');
         });
 
-        const remove = el('button', 'btn', 'Delete Mask');
+        const remove = el('button', 'btn btn--danger', 'Delete Mask');
         remove.type = 'button';
         remove.id = 'btn-delete-mask';
         remove.addEventListener('click', () => {
@@ -985,6 +1023,8 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
         }
         // History section rides along on every panel (§39).
         panel.prepend(historySection);
+        // Task 03: first content section becomes the panel header treatment.
+        panel.querySelector(':scope > .panel__section')?.classList.add('panel__section--lead');
     }
 
     function syncAdjustments(snapshot) {
@@ -1010,12 +1050,21 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
 
     function sync(snapshot) {
         for (const button of toolrail.querySelectorAll('[data-tool]')) {
-            button.classList.toggle('is-active', button.dataset.tool === snapshot.activeTool);
+            const active = button.dataset.tool === snapshot.activeTool;
+            button.classList.toggle('is-active', active);
+            button.setAttribute('aria-pressed', String(active));
         }
 
         if (panel.dataset.tool !== snapshot.activeTool) {
+            // Task 04 (§9/§42): remember where the outgoing tool was scrolled,
+            // restore it for the incoming tool, and play a subtle panel entrance.
+            if (panel.dataset.tool) panelScroll.set(panel.dataset.tool, panel.scrollTop);
             panel.dataset.tool = snapshot.activeTool;
             buildPanel(snapshot.activeTool);
+            panel.scrollTop = panelScroll.get(snapshot.activeTool) || 0;
+            panel.classList.remove('panel--enter');
+            void panel.offsetWidth; // restart the animation on every switch
+            panel.classList.add('panel--enter');
         } else if (snapshot.activeTool === 'mask'
             && maskPanelKeyOf(snapshot) !== maskPanelKey) {
             // Mask structure changed while the panel is open (image loaded,
@@ -1025,6 +1074,7 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
 
         status.textContent = snapshot.status.text;
         status.classList.toggle('is-error', snapshot.status.type === 'error');
+        status.classList.toggle('is-success', snapshot.status.type === 'success');
 
         // Composed dimensions are what the user sees and exports.
         const composed = snapshot.originalImage
@@ -1044,8 +1094,15 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
                 : 'Open a photo first';
             exportViews.status.textContent = snapshot.status.text;
             exportViews.status.classList.toggle('is-error', snapshot.status.type === 'error');
+            exportViews.status.classList.toggle('is-success', snapshot.status.type === 'success');
             exportViews.button.disabled = Boolean(snapshot.exporting) || !snapshot.originalImage;
             exportViews.button.textContent = snapshot.exporting ? 'Exporting…' : 'Export';
+            // Task 04 (§19): disabling the button during export blurs it — put
+            // focus back only if nothing else claimed it meanwhile.
+            if (lastExporting && !snapshot.exporting && document.activeElement === document.body) {
+                exportViews.button.focus();
+            }
+            lastExporting = Boolean(snapshot.exporting);
         }
 
         if (rotationView) {
@@ -1092,11 +1149,16 @@ export function createEditorUI({ state, refs, onOpen, onReset, exporter, fonts, 
         const preset = findPreset(button.dataset.preset) || getPreset(button.dataset.preset);
         if (!preset) return;
         gradeCtl.applyPreset(preset);
+        // Task 03: mark the applied look (state only — apply is unchanged).
+        clearActivePresets();
+        button.classList.add('is-active');
+        button.setAttribute('aria-current', 'true');
     });
 
     refs.openButton.addEventListener('click', onOpen);
     refs.resetButton.addEventListener('click', onReset);
     refs.panelButton.addEventListener('click', () => app.classList.toggle('panel-open'));
+    refs.exportButton.addEventListener('click', () => state.set({ activeTool: 'export' }));
 
     // --- Step 10: undo/redo shortcuts (§56). Text-entry targets keep their
     // native undo — only the editor's own controls trigger history.

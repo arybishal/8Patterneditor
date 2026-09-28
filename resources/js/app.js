@@ -33,6 +33,7 @@ function boot() {
         undoButton: byId('btn-undo'),
         redoButton: byId('btn-redo'),
         panelButton: byId('btn-panel'),
+        exportButton: byId('btn-export'),
         uploadButton: byId('btn-upload'),
         zoomValue: byId('zoom-value'),
         zoomOut: byId('zoom-out'),
@@ -107,7 +108,9 @@ function boot() {
             state.resetAdjustments();
             history.commit();
             zoom.fit();
-            state.setStatus('Reset — every adjustment is back to its default.');
+            // Task 04 (§16): say what the button actually clears — it resets
+            // edits of every kind, not just the adjustment sliders.
+            state.setStatus('Reset — every edit is back to its default; your photo stays open.');
         },
     });
     // Step 11: brush settings handle (UI state — never part of history).

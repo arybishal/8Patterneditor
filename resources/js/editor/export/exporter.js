@@ -121,6 +121,7 @@ export function createExporter({ state, pipeline, fonts }) {
             download(blob, exportFileName(snapshot.fileName, format.ext));
             state.setStatus(
                 `Export complete — ${format.ext.toUpperCase()} ${out.width} × ${out.height}`,
+                'success',
             );
         } catch (error) {
             console.warn('Export failed:', error);

@@ -208,6 +208,8 @@ export function createCropController({ state, workspace }) {
         else if (event.key === 'ArrowUp') draft.v -= dv;
         else if (event.key === 'ArrowDown') draft.v += dv;
         else if (event.key === 'Escape') cancel();
+        // Task 04 (§23): the aria-label promises "Enter applies" — make it true.
+        else if (event.key === 'Enter') apply();
         else handled = false;
         if (handled) {
             event.preventDefault();
@@ -296,7 +298,16 @@ export function createCropController({ state, workspace }) {
                 aspectLabel = 'Free';
                 ensureOverlay();
                 refreshBox();
+                // Task 04 (§19/§23): the box explains its keyboard flow in its
+                // aria-label — put focus there so the flow is actually usable.
+                if (box) box.focus({ preventScroll: true });
             } else {
+                // Task 04 (§23): abandoning an unapplied selection must not be
+                // silent. apply()/cancel() reset the draft first, so a modified
+                // draft here means the user is leaving with pending work.
+                if (draft.u !== 0 || draft.v !== 0 || draft.w !== 1 || draft.h !== 1) {
+                    state.setStatus('Crop discarded — nothing was applied.');
+                }
                 destroyOverlay();
             }
         },

@@ -9,14 +9,14 @@
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
     <link rel="alternate icon" href="/favicon.ico" sizes="32x32">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    @vite(['resources/css/app.css', 'resources/css/editor.css', 'resources/js/app.js'])
+    @vite(['resources/css/app.css', 'resources/css/tokens.css', 'resources/css/editor.css', 'resources/js/app.js'])
 </head>
 <body>
 <div class="app" id="app">
 
     <header class="topbar">
         <div class="brand">
-            <span class="brand__mark" aria-hidden="true"></span>
+            <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="11" r="5"/><circle cx="16" cy="21" r="5"/></svg>
             <span class="brand__name">8Pattern Editor</span>
         </div>
 
@@ -26,45 +26,54 @@
         </div>
 
         <div class="topbar__actions">
-            <button type="button" class="btn topbar__hist" id="btn-undo" aria-label="Undo" title="Undo (Ctrl+Z)" disabled><span class="topbar__hist-icon" aria-hidden="true">↶</span><span class="topbar__hist-label">Undo</span></button>
-            <button type="button" class="btn topbar__hist" id="btn-redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled><span class="topbar__hist-icon" aria-hidden="true">↷</span><span class="topbar__hist-label">Redo</span></button>
-            <button type="button" class="btn btn--ghost" id="btn-open">Open photo</button>
-            <button type="button" class="btn btn--ghost" id="btn-reset">Reset</button>
-            <button type="button" class="btn btn--ghost panel-toggle" id="btn-panel">Panel</button>
+            <div class="topbar__grp" role="group" aria-label="Undo history">
+                <button type="button" class="btn topbar__hist" id="btn-undo" aria-label="Undo" title="Undo (Ctrl+Z)" disabled><span class="topbar__hist-icon" aria-hidden="true">↶</span><span class="topbar__hist-label">Undo</span></button>
+                <button type="button" class="btn topbar__hist" id="btn-redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled><span class="topbar__hist-icon" aria-hidden="true">↷</span><span class="topbar__hist-label">Redo</span></button>
+            </div>
+            <span class="topbar__sep" aria-hidden="true"></span>
+            <div class="topbar__grp" role="group" aria-label="Project">
+                <button type="button" class="btn btn--ghost" id="btn-open">Open photo</button>
+                <button type="button" class="btn btn--ghost" id="btn-reset" title="Reset all edits: adjustments, effects, grade, crop, text and mask (undoable)">Reset</button>
+                <button type="button" class="btn btn--ghost panel-toggle" id="btn-panel">Panel</button>
+            </div>
+            <span class="topbar__sep" aria-hidden="true"></span>
+            <button type="button" class="btn btn--primary topbar__export" id="btn-export">Export</button>
         </div>
     </header>
 
     <div class="shell">
         <nav class="toolrail" id="toolrail" aria-label="Tools">
-            <button type="button" class="tool is-active" data-tool="adjust">
+            <button type="button" class="tool is-active" data-tool="adjust" aria-pressed="true">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>
                 <span class="tool__label">Adjust</span>
             </button>
-            <button type="button" class="tool" data-tool="film">
+            <button type="button" class="tool" data-tool="film" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M7 5v14M17 5v14M3 9.5h4M3 14.5h4M17 9.5h4M17 14.5h4"/></svg>
                 <span class="tool__label">Film</span>
             </button>
-            <button type="button" class="tool" data-tool="effects">
+            <button type="button" class="tool" data-tool="effects" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 4.9L19 9.7l-4.6 2.6L13.6 18 12 14.9 10.4 18l-.8-5.7L5 9.7l5.2-1.8z"/><path d="M18.5 15.5l.7 1.9 1.8.7-1.8.7-.7 1.9-.7-1.9-1.8-.7 1.8-.7z"/></svg>
                 <span class="tool__label">Effects</span>
             </button>
-            <button type="button" class="tool" data-tool="mask">
+            <button type="button" class="tool" data-tool="mask" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 3.5l6 6L9 21H3v-6z"/><path d="M11.5 6.5l6 6"/></svg>
                 <span class="tool__label">Mask</span>
             </button>
-            <button type="button" class="tool" data-tool="crop">
+            <div class="toolrail__sep" aria-hidden="true"></div>
+            <button type="button" class="tool" data-tool="crop" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14M2 6h14a2 2 0 0 1 2 2v14"/></svg>
                 <span class="tool__label">Crop</span>
             </button>
-            <button type="button" class="tool" data-tool="rotate">
+            <button type="button" class="tool" data-tool="rotate" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 6.3"/><path d="M20 4v7h-7"/></svg>
                 <span class="tool__label">Rotate</span>
             </button>
-            <button type="button" class="tool" data-tool="text">
+            <button type="button" class="tool" data-tool="text" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6h14M12 6v13M9 19h6"/></svg>
                 <span class="tool__label">Text</span>
             </button>
-            <button type="button" class="tool" data-tool="export">
+            <div class="toolrail__sep" aria-hidden="true"></div>
+            <button type="button" class="tool" data-tool="export" aria-pressed="false">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11M8 10.5l4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
                 <span class="tool__label">Export</span>
             </button>
